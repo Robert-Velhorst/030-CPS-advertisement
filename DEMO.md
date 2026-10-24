@@ -20,3 +20,5 @@ The product requirements in the root `README.md` remain authoritative. A real pi
 ## Run locally
 
 Open `index.html` in a modern browser. The pages need no build step or dependencies. Google Fonts are an optional remote visual enhancement; system sans-serif fonts are the fallback.
+
+When copying the prototype, keep the `demo/` folder together with its HTML page and JavaScript asset.

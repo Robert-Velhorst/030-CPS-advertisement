@@ -1,0 +1,54 @@
+name: Review JavaScript source security
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  javascript:
+    name: Analyze application JavaScript for review
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.15.1"
+      - name: Initialize JavaScript analysis
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: javascript-typescript
+          build-mode: none
+      - name: Analyze source without replacing default setup
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          output: source-analysis
+          upload: never
+          upload-database: false
+      - name: Reject reported source findings
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          reports = list(Path("source-analysis").glob("*.sarif"))
+          if not reports:
+              raise SystemExit("No source analysis report was produced")
+          runs = [run for path in reports
+                  for run in json.loads(path.read_text(encoding="utf-8"))["runs"]]
+          if not runs or any(run.get("tool", {}).get("driver", {}).get("name") != "CodeQL" for run in runs):
+              raise SystemExit("Expected a nonempty CodeQL analysis report")
+          findings = sum(len(run.get("results", [])) for run in runs)
+          print(f"Reported source findings: {findings}")
+          if findings:
+              raise SystemExit("Review and repair every reported finding before merging")
+          PY
+      - name: Retain review analysis
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: javascript-source-analysis
+          path: source-analysis/*.sarif
+          if-no-files-found: error
