@@ -8,7 +8,7 @@ string sourceKind(TopLevel top) {
   or
   top instanceof EventHandlerCode and result = "event-handler"
   or
-  top instanceof JavaScriptURL and result = "javascript-url"
+  top instanceof JavaScriptUrl and result = "javascript-url"
 }
 
 string minification(TopLevel top) {

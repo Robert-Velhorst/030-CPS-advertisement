@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          export LGTM_INDEX_INCLUDE="$(printf '.\n'; git -c core.quotePath=false ls-files)"
+          export LGTM_INDEX_INCLUDE='.'
           "$RUNNER_TEMP/cps-codeql/codeql/codeql" database create "$RUNNER_TEMP/cps-codeql/database" \
             --language="$LANGUAGE" --build-mode=none --source-root="$GITHUB_WORKSPACE" \
             --threads=2 --ram=6000 2>&1 | tee "$CPS_EVIDENCE/create.log"
